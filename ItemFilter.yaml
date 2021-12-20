@@ -30,6 +30,7 @@ Mage Plate:
 Monarch:
  - Qualities: magic
  - Sockets: [4]
+ - Qualities: unique # Stormshield
 
 
 # This is just an object that holds all our commonly used aliases
