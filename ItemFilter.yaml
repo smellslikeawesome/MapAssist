@@ -1,37 +1,89 @@
 # IMPORTANT: After changing anything in this file, ensure validity using https://jsonformatter.org/yaml-validator
-
-# Item filter rules
-# "Any" can be used if you would like to see ALL uniques, all set items, all items with x sockets, etc
+#
+# How to modify this file:
+# All lines starting with "#" are comments and are not parsed
+#
+# Item filters start with a base item, such as "Ring" or "Colossus Voulge"
+# A base item should only be listed once in this config
+# An item filter can include one or more rules, and rules can specify one or more criteria
+#
+# The 2nd line of a filter is the start of a new rule for the item being filtered
+# New rules always start with a "-" and list one of the 3 criteria below
+#
+# The 3rd line can either be a new rule, prefixed with "-" or can be additional criteria for the rule started on line 2
+# Additional criteria for each rule must be indented to the same level as the rule and must NOT start with a "-"
+#
+# Filter rule criteria can be one or more of the following:
+# Ethereal:
+# Qualities:
+# Sockets:
+#
+# Ethereal: is a true/false value
+# If set to false, the filter will not alert for ethereal drops of the base item for that rule, but will alert for
+# non-ethereal drops in the same rule
+#
+# Qualities: can be any of the below
+# Inferior - Low Quality/Damaged/Cracked etc items
+# Normal - White items
+# Superior - White items with enhanced stats (dmg/durability for weapons, and defense/durability for shields and armor)
+# Magic - Blue items
+# Set - Green items
+# Rare - Yellow items
+# Unique - Gold items
+# Crafted - Orange items
+#
+# Sockets: is a list of the desired number of sockets for the filter to match on, and can include multiple numbers
+#
+# Example filters and criteria can be found below. The examples are included in the config, please do not uncomment them.
+#
+# Alert to any unique Shako, regardless of any other criteria
+# Shako:
+# - Qualities: unique
+#
+# You can also filter for the base item without any additional rules, such as for boss essences and keys
+# Key of Hate:
+# Key of Terror:
+# Key of Destruction
+# Twisted Essence of Suffering:
+# Charged Essence of Hatred:
+# Burning Essence of Terror:
+# Festering Essence of Destruction:
+#
+# This thresher filter is really 2 rules and one of the rules has 3 criteria.
+# This filter will look for ethereal threshers with 0 or 4 sockets that are either normal superior quality
+# A second rule is defined to look for any unique Thresher regardless of other criteria
+# One thing is importent to note: criteria in one rule do not affect other rules.
+# In this case, if The Reaper's Toll drops, the filter will alert you even if it is Ethereal, because the 2
+# rules match different criteria. To additionally prevent alerts from Ethereal versions of The Reaper's Toll,
+# you would add "Ethereal: false" under the "Qualities: unique" line
+# Thresher:
+# - Ethereal: true
+#   Qualities: [normal, superior]
+#   Sockets: [0, 4]
+# - Qualities: unique # The Reaper's Toll
+#
+# This mage plate filter will look for any normal/superior mage plate with 3 or 4 sockets
+# This shows an alternate way to define items in a list.
+# In this case, "normal" and "superior" both have a "-" prefix. This is treated as part of the above criteria (Qualities)
+# and works the same as "Qualities: [normal, superior]" as you see in the example above.
+# Mage Plate:
+# - Qualities:
+#    - normal
+#    - superior
+#   Sockets: [0, 3]
+#
+# 3 rules here, notice the "-" on each line
+# This will show all magic, rare, and unique monarchs, as well as monarchs with 4 sockets of any quality
+# Monarch:
+# - Sockets: [0, 3, 4]
+# - Qualities: [magic, rare]
+# - Qualities: unique # Stormshield
+#
+# "Any" is a filter which can be used if you would like to see items which match certain criteria regardless of the
+# base item type. For example: ALL uniques, all set items, all items with x sockets, etc
 # Most of the time we don't want to filter that broadly, so this is commented out with #
 # Any:
-# - Qualities: unique/magic
-
-# The first line or "Key" is the item base name, in the next case, "Harlequin Crest" is a unique "Shako"
-# Alert to any unique Shako, regardless of any other modifiers (sockets, eth)
-Shako:
- - Qualities: unique
- 
-# This thresher rule will look for only ethereal threshers with 4 sockets that are either normal/superior quality
-Thresher:
- - Ethereal: true
-   Qualities: [normal, superior]
-   Sockets: [0, 4]
- - Qualities: unique # The Reaper's Toll
-
-# This mage plate rule will look for any normal/superior mage plate with 3 or 4 sockets
-Mage Plate:
- - Qualities: 
-    - normal
-    - superior
-   Sockets: [0, 3]
-
-# This monarch rule is really 2 separate rules.  Notice the "-" on each line
-# This will show all magic monarchs, as well as monarchs with 4 sockets of any quality (since quality is not specific in this rule)
-Monarch:
- - Qualities: magic
- - Sockets: [4]
- - Qualities: unique # Stormshield
-
+# - Qualities: [magic, unique]
 
 # This is just an object that holds all our commonly used aliases
 # Aliases are labeled by the `&` and then the name
@@ -42,36 +94,43 @@ x-bases:
   Qualities: [normal, superior]
   Sockets: [0, 3, 4]
  - &player-arm-base
+  Ethereal: false
   Qualities: [normal, superior]
   Sockets: [0, 3, 4]
-  Ethereal: false
  - &merc-wep-base
   Ethereal: true
   Qualities: [normal, superior]
   Sockets: [4]
  - &pally-shield-base
-   Qualities: [normal, superior]
-   Sockets: [0, 4]
+  Ethereal: false
+  Qualities: [normal, superior]
+  Sockets: [0, 4]
+
 # This ring rule will show all magic, rare, and unique rings
 Ring:
  - Qualities: [magic, rare, unique]
 
-### Some items are inactive. 
-### To activate them for the loot log, remove the ## in front of them. 
+### Some items are inactive
+### To activate them for the loot log, remove the ## in front of them
 ### To inactivate items, include a ## in front of them or delete it completely, then save this file.
-### You can test this with Full Rejuvination Potion below.
+### You can test this with Full Rejuvenation Potion below.
 ##Full Rejuvenation Potion:
 
 ### Mercenary Weapon Bases
-Giant Thresher: 
+Thresher:
   - *merc-wep-base
+  - Qualities: unique # The Reaper's Toll
 Cryptic Axe:
   - *merc-wep-base
+  - Qualities: unique # Tomb Reaver
 Colossus Voulge:
   - *merc-wep-base
+Giant Thresher:
+  - *merc-wep-base
+  - Qualities: unique # Stormspire
+    Ethereal: false
 
 ### Mercenary Armor Bases
-
 Dusk Shroud:
  - *merc-arm-base
  - *player-arm-base
@@ -134,16 +193,16 @@ Matriarchal Javelin:
 
 ### Misc
 Amulet:
- - Qualities: 
+ - Qualities:
    - magic
    - rare
    - unique
    - set
 Jewel:
- - Qualities: 
+ - Qualities:
    - magic
    - rare
-   - unique
+   - unique # Rainbow Facet
 Small Charm:
  - Qualities: [magic, unique]
 Large Charm:
@@ -153,6 +212,10 @@ Grand Charm:
 Key of Terror:
 Key of Hate:
 Key of Destruction:
+Twisted Essence of Suffering:
+Charged Essence of Hatred:
+Burning Essence of Terror:
+Festering Essence of Destruction:
 
 ### Exceptional Boots
 Demonhide Boots:
@@ -181,7 +244,7 @@ Mirrored Boots:
  - Qualities: rare
 Myrmidon Greaves:
  - Qualities: rare
- 
+
 ### Exceptional Gloves
 Demonhide Gloves:
  - Qualities: rare
@@ -195,7 +258,7 @@ Battle Gauntlets:
  - Qualities: rare
 War Gauntlets:
  - Qualities: rare
- 
+
 ### Elite Gloves
 Bramble Mitts:
  - Qualities: rare
@@ -209,7 +272,7 @@ Crusader Gauntlets:
  - Qualities: rare
 Ogre Gauntlets:
  - Qualities: rare
- 
+
 ### Helmets
 Bone Visage:
  - Qualities: [normal, superior]
@@ -266,6 +329,19 @@ Sacred Targe:
  - *pally-shield-base
 Sacred Rondache:
  - *pally-shield-base
+
+### Monarch Shields
+Monarch:
+ - Sockets: [0, 3, 4] # Spirit and Ancient's Pledge base
+ - Qualities: [magic, rare]
+ - Qualities: unique # Stormshield
+
+### Mage Plate
+Mage Plate:
+ - Qualities:
+    - normal
+    - superior
+   Sockets: [0, 3]
 
 ### Runes
 Hel Rune:
@@ -402,6 +478,9 @@ Hydra Bow:
  - Qualities: unique
 # Buriza-Do Kyanon
 Ballista:
+- Qualities: unique
+# Harlequin Crest
+Shako:
 - Qualities: unique
 
 ### Sets
