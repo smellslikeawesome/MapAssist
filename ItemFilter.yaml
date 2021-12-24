@@ -126,6 +126,7 @@ Sacred Armor:
 
 ### Bases
 Archon Plate:
+  - *merc-arm-base
   - *player-arm-base
 Flail:
   - Qualities: [normal, superior]
