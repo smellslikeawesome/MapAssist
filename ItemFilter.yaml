@@ -63,7 +63,7 @@ x-bases:
     Qualities: [normal, superior]
     Sockets: [4]
   - &pally-shield-base
-    Ethereal: true
+    # Ethereal: true    # Uncomment this criteria if you don't need a Spirit shield base
     Qualities: [normal, superior]
     Sockets: [0, 4]
 
