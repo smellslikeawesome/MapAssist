@@ -17,10 +17,9 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  **/
 
+using MapAssist.Types;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using MapAssist.Types;
 
 namespace MapAssist.Helpers
 {
@@ -31,107 +30,121 @@ namespace MapAssist.Helpers
         private static int _currentProcessId;
 
         public static Dictionary<int, UnitAny> PlayerUnits = new Dictionary<int, UnitAny>();
+        public static Dictionary<int, Dictionary<uint, UnitAny>> Corpses = new Dictionary<int, Dictionary<uint, UnitAny>>();
 
         public static GameData GetGameData()
         {
-            try
+            if (!GameManager.IsGameInForeground)
             {
-                if (!GameManager.IsGameInForeground)
+                return null;
+            }
+
+            var processContext = GameManager.GetProcessContext();
+
+            if (processContext == null)
+            {
+                return null;
+            }
+
+            using (processContext)
+            {
+                _currentProcessId = processContext.ProcessId;
+
+                var menuOpen = processContext.Read<byte>(GameManager.MenuOpenOffset);
+                var menuData = processContext.Read<Structs.MenuData>(GameManager.MenuDataOffset);
+
+                if (!menuData.InGame && Corpses.TryGetValue(_currentProcessId, out var _))
                 {
-                    return null;
+                    Corpses[_currentProcessId].Clear();
                 }
 
-                var processContext = GameManager.GetProcessContext();
+                var playerUnit = GameManager.PlayerUnit;
 
-                if (processContext == null)
+                if (!PlayerUnits.TryGetValue(_currentProcessId, out var _))
                 {
-                    return null;
+                    PlayerUnits.Add(_currentProcessId, playerUnit);
+                }
+                else
+                {
+                    PlayerUnits[_currentProcessId] = playerUnit;
                 }
 
-                using (processContext)
+                if (!Equals(playerUnit, default(UnitAny)))
                 {
-                    _currentProcessId = processContext.ProcessId;
-                    var playerUnit = GameManager.PlayerUnit;
+                    var mapSeed = playerUnit.Act.MapSeed;
 
-                    if(!PlayerUnits.TryGetValue(_currentProcessId, out var _))
+                    if (mapSeed <= 0 || mapSeed > 0xFFFFFFFF)
                     {
-                        PlayerUnits.Add(_currentProcessId, playerUnit);
-                    } else
+                        throw new Exception("Map seed is out of bounds.");
+                    }
+                    if (!_lastMapSeed.TryGetValue(_currentProcessId, out var _))
                     {
-                        PlayerUnits[_currentProcessId] = playerUnit;
+                        _lastMapSeed.Add(_currentProcessId, 0);
+                    }
+                    if (mapSeed != _lastMapSeed[_currentProcessId])
+                    {
+                        _lastMapSeed[_currentProcessId] = mapSeed;
+                        //dispose leftover timers in this process if we started a new game
+                        if (Items.ItemLogTimers.TryGetValue(_currentProcessId, out var _))
+                        {
+                            foreach (var timer in Items.ItemLogTimers[_currentProcessId])
+                            {
+                                timer.Dispose();
+                            }
+                        }
+
+                        if (!Items.ItemUnitHashesSeen.TryGetValue(_currentProcessId, out var _))
+                        {
+                            Items.ItemUnitHashesSeen.Add(_currentProcessId, new HashSet<string>());
+                            Items.ItemUnitIdsSeen.Add(_currentProcessId, new HashSet<uint>());
+                            Items.ItemLog.Add(_currentProcessId, new List<UnitAny>());
+                        }
+                        else
+                        {
+                            Items.ItemUnitHashesSeen[_currentProcessId].Clear();
+                            Items.ItemUnitIdsSeen[_currentProcessId].Clear();
+                            Items.ItemLog[_currentProcessId].Clear();
+                        }
+
+                        if (!Corpses.TryGetValue(_currentProcessId, out var _))
+                        {
+                            Corpses.Add(_currentProcessId, new Dictionary<uint, UnitAny>());
+                        }
+                        else
+                        {
+                            Corpses[_currentProcessId].Clear();
+                        }
                     }
 
-                    if (!Equals(playerUnit, default(UnitAny)))
+                    var session = new Session(GameManager.GameIPOffset);
+
+                    var actId = playerUnit.Act.ActId;
+                    var gameDifficulty = playerUnit.Act.ActMisc.GameDifficulty;
+
+                    if (!gameDifficulty.IsValid())
                     {
-                        playerUnit = playerUnit.Update();
+                        throw new Exception("Game difficulty out of bounds.");
                     }
-                        
+
+                    var levelId = playerUnit.Path.Room.RoomEx.Level.LevelId;
+
+                    if (!levelId.IsValid())
+                    {
+                        throw new Exception("Level id out of bounds.");
+                    }
+
+                    Items.CurrentItemLog = Items.ItemLog[_currentProcessId];
+
+                    var rosterData = new Roster(GameManager.RosterDataOffset);
+
+                    playerUnit = playerUnit.Update(rosterData);
                     if (!Equals(playerUnit, default(UnitAny)))
                     {
-                        var mapSeed = playerUnit.Act.MapSeed;
-
-                        if (mapSeed <= 0 || mapSeed > 0xFFFFFFFF)
-                        {
-                            throw new Exception("Map seed is out of bounds.");
-                        }
-                        if (!_lastMapSeed.TryGetValue(_currentProcessId, out var _))
-                        {
-                            _lastMapSeed.Add(_currentProcessId, 0);
-                        }
-                        if (mapSeed != _lastMapSeed[_currentProcessId])
-                        {
-                            _lastMapSeed[_currentProcessId] = mapSeed;
-                            //dispose leftover timers in this process if we started a new game
-                            if(Items.ItemLogTimers.TryGetValue(_currentProcessId, out var _))
-                            {
-                                foreach (var timer in Items.ItemLogTimers[_currentProcessId])
-                                {
-                                    timer.Dispose();
-                                }
-                            }
-                            if (!Items.ItemUnitHashesSeen.TryGetValue(_currentProcessId, out var _))
-                            {
-                                Items.ItemUnitHashesSeen.Add(_currentProcessId, new HashSet<string>());
-                                Items.ItemUnitIdsSeen.Add(_currentProcessId, new HashSet<uint>());
-                                Items.ItemLog.Add(_currentProcessId, new List<UnitAny>());
-                            }
-                            else
-                            {
-                                Items.ItemUnitHashesSeen[_currentProcessId].Clear();
-                                Items.ItemUnitIdsSeen[_currentProcessId].Clear();
-                                Items.ItemLog[_currentProcessId].Clear();
-                            }
-                        }
-
-                        var session = new Session(GameManager.GameIPOffset);
-
-                        var menuOpen = processContext.Read<byte>(GameManager.MenuOpenOffset);
-                        var menuData = processContext.Read<Structs.MenuData>(GameManager.MenuDataOffset);
-
-                        var actId = playerUnit.Act.ActId;
-
-                        var gameDifficulty = playerUnit.Act.ActMisc.GameDifficulty;
-
-                        if (!gameDifficulty.IsValid())
-                        {
-                            throw new Exception("Game difficulty out of bounds.");
-                        }
-
-                        var levelId = playerUnit.Path.Room.RoomEx.Level.LevelId;
-
-                        if (!levelId.IsValid())
-                        {
-                            throw new Exception("Level id out of bounds.");
-                        }
-
                         var monsterList = new HashSet<UnitAny>();
                         var itemList = new HashSet<UnitAny>();
                         var objectList = new HashSet<UnitAny>();
                         var playerList = new Dictionary<uint, UnitAny>();
-                        GetUnits(ref monsterList, ref itemList, ref playerList, ref objectList);
-                        Items.CurrentItemLog = Items.ItemLog[_currentProcessId];
-
-                        var roster = new Roster(GameManager.RosterDataOffset);
+                        GetUnits(rosterData, ref monsterList, ref itemList, ref playerList, ref objectList);
 
                         return new GameData
                         {
@@ -146,23 +159,13 @@ namespace MapAssist.Helpers
                             Objects = objectList,
                             Players = playerList,
                             Session = session,
-                            Roster = roster,
+                            Roster = rosterData,
                             PlayerUnit = playerUnit,
                             MenuOpen = menuData,
-                            MenuPanelOpen = menuOpen
+                            MenuPanelOpen = menuOpen,
+                            ProcessId = _currentProcessId
                         };
                     }
-                }
-            }
-            catch (Exception exception)
-            {
-                if (exception.Message == "Game process not found.")
-                {
-                    _log.Debug(exception);
-                }
-                else
-                {
-                    _log.Error(exception);
                 }
             }
 
@@ -170,23 +173,24 @@ namespace MapAssist.Helpers
             return null;
         }
 
-        private static void GetUnits(ref HashSet<UnitAny> monsterList, ref HashSet<UnitAny> itemList, ref Dictionary<uint, UnitAny> playerList, ref HashSet<UnitAny> objectList)
+        private static void GetUnits(Roster rosterData, ref HashSet<UnitAny> monsterList, ref HashSet<UnitAny> itemList, ref Dictionary<uint, UnitAny> playerList, ref HashSet<UnitAny> objectList)
         {
             for (var i = 0; i <= 4; i++)
             {
                 var unitType = (UnitType)i;
                 var unitHashTable = new Structs.UnitHashTable();
-                if(unitType == UnitType.Missile)
+                if (unitType == UnitType.Missile)
                 {
                     //missiles are contained in a different table
                     unitHashTable = GameManager.UnitHashTable(128 * 8 * (i + 6));
-                } else
+                }
+                else
                 {
                     unitHashTable = GameManager.UnitHashTable(128 * 8 * i);
                 }
                 foreach (var pUnitAny in unitHashTable.UnitTable)
                 {
-                    var unitAny = new UnitAny(pUnitAny);
+                    var unitAny = new UnitAny(pUnitAny, rosterData);
                     while (unitAny.IsValidUnit())
                     {
                         switch (unitType)
@@ -197,26 +201,29 @@ namespace MapAssist.Helpers
                                     monsterList.Add(unitAny);
                                 }
                                 break;
+
                             case UnitType.Item:
                                 if (!itemList.Contains(unitAny))
                                 {
                                     itemList.Add(unitAny);
                                 }
                                 break;
+
                             case UnitType.Object:
                                 if (!objectList.Contains(unitAny))
                                 {
                                     objectList.Add(unitAny);
                                 }
                                 break;
+
                             case UnitType.Player:
-                                if (!playerList.TryGetValue(unitAny.UnitId, out var _))
+                                if (!playerList.TryGetValue(unitAny.UnitId, out var _) && unitAny.IsPlayer())
                                 {
                                     playerList.Add(unitAny.UnitId, unitAny);
                                 }
                                 break;
                         }
-                        unitAny = unitAny.ListNext;
+                        unitAny = unitAny.ListNext(rosterData);
                     }
                 }
             }
@@ -238,6 +245,7 @@ namespace MapAssist.Helpers
                             }
 
                             break;
+
                         case UnitType.Item:
                             if (!itemList.Contains(unitAny))
                             {

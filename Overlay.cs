@@ -57,13 +57,13 @@ namespace MapAssist
 
         private void _window_DrawGraphics(object sender, DrawGraphicsEventArgs e)
         {
-            lock (_lock)
+            if (disposed) return;
+
+            var gfx = e.Graphics;
+
+            try
             {
-                if (disposed) return;
-
-                var gfx = e.Graphics;
-
-                try
+                lock (_lock)
                 {
                     (_compositor, _gameData) = _gameDataReader.Get();
 
@@ -110,10 +110,11 @@ namespace MapAssist
                         _compositor.DrawGameInfo(gfx, new Point(PlayerIconWidth() + 50, PlayerIconWidth() + 50), e, errorLoadingAreaData);
                     }
                 }
-                catch (Exception ex)
-                {
-                    _log.Error(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex);
+                GameManager.ResetPlayerUnit();
             }
         }
 
@@ -156,11 +157,6 @@ namespace MapAssist
                           (int)(MapAssistConfiguration.Loaded.RenderingConfiguration.InitialSize * 0.05f);
                     }
                 }
-
-                if (args.KeyChar == MapAssistConfiguration.Loaded.HotkeyConfiguration.GameInfoKey)
-                {
-                    MapAssistConfiguration.Loaded.GameInfo.Enabled = !MapAssistConfiguration.Loaded.GameInfo.Enabled;
-                }
             }
         }
 
@@ -196,20 +192,17 @@ namespace MapAssist
             return rect.Height / 20f;
         }
 
-        ~Overlay()
-        {
-            Dispose(false);
-        }
-
         private void _window_DestroyGraphics(object sender, DestroyGraphicsEventArgs e)
         {
             if (_compositor != null) _compositor.Dispose();
             _compositor = null;
         }
 
+        ~Overlay() => Dispose();
+
         private bool disposed = false;
 
-        protected virtual void Dispose(bool disposing)
+        public void Dispose()
         {
             lock (_lock)
             {
@@ -220,12 +213,6 @@ namespace MapAssist
                     if (_compositor != null) _compositor.Dispose(); // This last so it's disposed after GraphicsWindow stops using it
                 }
             }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
     }
 }
