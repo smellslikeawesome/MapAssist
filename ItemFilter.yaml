@@ -63,7 +63,7 @@ x-bases:
     Qualities: [normal, superior]
     Sockets: [4]
   - &pally-shield-base
-    Ethereal: false
+    Ethereal: true
     Qualities: [normal, superior]
     Sockets: [0, 4]
 
