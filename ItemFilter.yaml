@@ -71,7 +71,6 @@ x-bases:
     Sockets: [0, 3, 4]
   - &zon-bow
     Qualities: [inferior, normal, superior]
-    Sockets: [0, 2, 3, 4]
   - &magic-scepter-wand-staff-javelin
     Ethereal: false
     Qualities: [magic, rare]
@@ -931,6 +930,8 @@ Dirk:
   - Qualities: unique # The Diggler
 Blade:
   - Qualities: unique # Spectral Shard
+Maiden Spear:
+  - Qualities: [magic, rare]
 
 ### Uniques
 Zakarum Shield:
