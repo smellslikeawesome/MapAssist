@@ -662,9 +662,11 @@ Succubus Skull:
   - Qualities: unique # Boneflame
 Ceremonial Bow:
   - *zon-bow
+  - Qualities: [magic, rare]
   - Qualities: unique # Lycander's Aim
 Matriarchal Bow:
   - *zon-bow
+  - Qualities: [magic, rare]
   - Qualities: unique # Blood Raven's Charge
 Walking Stick:
   - *magic-scepter-wand-staff-javelin
@@ -746,13 +748,17 @@ Jared's Stone:
   - *nonmagic-wand
 Grand Matron Bow:
   - *zon-bow
+  - Qualities: [magic, rare]
   - Qualities: set    # M'avina's Caster
 Ashwood Bow:
   - *zon-bow
+  - Qualities: [magic, rare]
 Stag Bow:
   - *zon-bow
+  - Qualities: [magic, rare]
 Reflex Bow:
   - *zon-bow
+  - Qualities: [magic, rare]
 Maiden Javelin:
   - Qualities: [inferior, normal, superior]
   - Qualities: [magic, rare]
