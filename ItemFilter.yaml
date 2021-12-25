@@ -799,37 +799,53 @@ Griffon Headdress:
   - *nonmagic-helm
 Hunter's Guise:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
   - Qualities: set    # Aldur's Stony Gaze
 Sacred Feathers:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Wolf Head:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Hawk Helm:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Antlers:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Falcon Mask:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Spirit Mask:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Jawbone Visor:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Lion Helm:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Rage Mask:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Savage Helmet:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Jawbone Cap:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Fanged Helm:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Horned Helm:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Assault Helmet:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
 Avenger Guard:
   - *nonmagic-helm
+  - Qualities: [magic, rare]
   - Qualities: set    # Immortal King's Will
 Skull Cap:
   - Qualities: set    # Arcanna's Head
