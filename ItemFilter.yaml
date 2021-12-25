@@ -3,77 +3,120 @@
 # Item filter rules
 # "Any" can be used if you would like to see ALL uniques, all set items, all items with x sockets, etc
 # Most of the time we don't want to filter that broadly, so this is commented out with #
-# Any:
-# - Qualities: unique/magic
+Any:
+  - Qualities: crafted
 
-# The first line or "Key" is the item base name, in the next case, "Harlequin Crest" is a unique "Shako"
-# Alert to any unique Shako, regardless of any other modifiers (sockets, eth)
-Shako:
-  - Qualities: unique
+# The first line or "Key" is the item base type, in the next case, "Harlequin Crest" is a unique "Shako"
+# Alert to any unique Shako, regardless of any other criteria (sockets, eth)
+Shako:                              # Item Base Type
+  - Qualities: unique               # Rule starts with "-" and lists one of 3 criteria
+  - Qualities: [inferior, normal, superior]
+    Sockets: [0, 2, 3]
 
-# This thresher rule will look for only ethereal threshers with 4 sockets that are either normal/superior quality
+# Additional criteria can be listed below the first. Do not prefix a "-" to lines with criteria you wish to include
+# as part of the same rule. You can also list multiple values for both Qualities and Sockets as shown in the Thresher
+# example below
+#
+# This thresher rule is really 2 separate rules. One with 3 criteria and one with a single criteria.
+# The first rule will look for only ethereal threshers with 0 or 4 sockets that are either normal or superior quality
+# The second rule looks only for unique threshers. The criteria listed for the first rule do not apply to the second
+# Therefore, the second rule will log any unique thresher, with any number of sockets
 Thresher:
   - Ethereal: true
     Qualities: [normal, superior]
     Sockets: [0, 4]
   - Qualities: unique # The Reaper's Toll
 
+# Criteria are: Ethereal (true/false), Sockets (0-6), and Qualities
+# Qualities is one of the item quality levels. Item qualities start at inferior for low quality/cracked/etc items,
+# and move from there to normal, superior, magic, set, rare, unique, and crafted
+#
+# Another way to list multiple values for Qualities and Sockets is to list each desired quality or number of sockets
+# on its own line with an extra indent and a "-"
+# This format is supported but its use is discouraged
 # This mage plate rule will look for any normal/superior mage plate with 0 or 3 sockets
+# Because Ethereal: true is not set here, both non-ethereal and ethereal items will trigger this rule
 Mage Plate:
-  - Qualities: 
+  - Qualities:
     - normal
     - superior
     Sockets: [0, 3]
+  - Qualities: unique # Que-Hegan's Wisdom
 
-# This monarch rule is 2 separate rules. Notice the "-" on each line
-# This will show unique and set monarchs as well as non-magical monarchs with 0 or 4 sockets
+# This will show unique monarchs as well as non-magical monarchs with 0 or 4 sockets
 Monarch:
-  - Qualities: [unique, set] # Stormshield and Milabrega's Orb
+  - Qualities: unique # Stormshield
   - Qualities: [normal, superior]
-    Sockets: [0, 4]
+    Sockets: [0, 3, 4]
 
 # This is just an object that holds all our commonly used aliases
-# Aliases are labeled by the `&` and then the name
-# They are then used by referencing `*` then the name
+# Aliases are labeled by the `&` and then the name and provide a simple way to reuse rule criteria later on
+# They are used by referencing `*` then the name as you'll see in the Mercenary section of this config
 x-bases:
   - &merc-arm-base
     Ethereal: true
     Qualities: [normal, superior]
     Sockets: [0, 3, 4]
   - &player-arm-base
+    Ethereal: false
     Qualities: [normal, superior]
     Sockets: [0, 3, 4]
-    Ethereal: false
   - &merc-wep-base
     Ethereal: true
     Qualities: [normal, superior]
-    Sockets: [4]
-  - &pally-shield-base
-    Qualities: [normal, superior]
     Sockets: [0, 4]
+  - &pally-shield-base
+    Ethereal: false
+    Qualities: [inferior, normal, superior]
+    Sockets: [0, 3, 4]
+  - &zon-bow
+    Qualities: [inferior, normal, superior]
+    Sockets: [0, 2, 3, 4]
+  - &magic-scepter-wand-staff-javelin
+    Ethereal: false
+    Qualities: [magic, rare]
+  - &nonmagic-scepter
+    Ethereal: false
+    Qualities: [inferior, normal, superior]
+    Sockets: [0, 3, 4, 5]
+  - &nonmagic-wand
+    Ethereal: false
+    Qualities: [inferior, normal, superior]
+    Sockets: [0, 2]
+  - &nonmagic-staff
+    Ethereal: false
+    Qualities: [inferior, normal, superior]
+    Sockets: [0, 2, 3, 4, 5]
+  - &nonmagic-helm
+    Qualities: [inferior, normal, superior]
+    Sockets: [0, 2, 3]
+
 # This ring rule will show all magic, rare, and unique rings
 Ring:
-  - Qualities: [magic, rare, unique]
+  - Qualities: [rare, unique, set]
 
-### Some items are inactive. 
-### To activate them for the loot log, remove the ## in front of them. 
+### Some items are inactive
+### To activate them for the loot log, remove the ## in front of them
 ### To inactivate items, include a ## in front of them or delete it completely, then save this file.
-### You can test this with Full Rejuvination Potion below.
-## Full Rejuvenation Potion:
+### You can test this with Full Rejuvenation Potion below.
+Full Rejuvenation Potion:
 
 ### Mercenary Weapon Bases
-Giant Thresher: 
-  - *merc-wep-base
+Colossus Voulge:
+  - *merc-wep-base    # This is an alias mentioned above and its criteria applies as if the rules were typed here
 Cryptic Axe:
   - *merc-wep-base
-Colossus Voulge:
+  - Qualities: unique # Tomb Reaver is not part of the *merc-wep-base alias so we list its criteria as its own rule
+Giant Thresher:
   - *merc-wep-base
+  - Qualities: unique # Stormspire is useful for certain player builds (but not mercs, so we don't want Ethereal!)
+    Ethereal: false
 
 ### Mercenary Armor Bases
-
 Dusk Shroud:
   - *merc-arm-base
   - *player-arm-base
+  - Qualities: set    # Dark Adherent
   - Qualities: unique # Ormus' Robes
 Wyrmhide:
   - *merc-arm-base
@@ -86,28 +129,35 @@ Diamond Mail:
   - *merc-arm-base
 Loricated Mail:
   - *merc-arm-base
+  - Qualities: set    # Natalya's Shadow
 Great Hauberk:
   - *merc-arm-base
 Boneweave:
   - *merc-arm-base
 Balrog Skin:
   - *merc-arm-base
+  - Qualities: set    # Sazabi's Ghost Liberator
+  - Qualities: unique # Arkaine's Valor
 Kraken Shell:
   - *merc-arm-base
+  - Qualities: set    # M'avina's Embrace
 Hellforge Plate:
   - *merc-arm-base
+  - Qualities: set    # Naj's Light Plate
 Lacquered Plate:
   - *merc-arm-base
-  - Qualities: Set # Tal Rasha's Guardianship
+  - Qualities: set    # Tal Rasha's Guardianship
 Shadow Plate:
   - *merc-arm-base
+  - Qualities: set    # Aldur's Deception
 Sacred Armor:
   - *merc-arm-base
   - Qualities: unique # Tyrael's Might
-  - Qualities: set # Immortal King's Soul Cage
+  - Qualities: set    # Immortal King's Soul Cage
 
 ### Bases
 Archon Plate:
+  - *merc-arm-base
   - *player-arm-base
 Flail:
   - Qualities: [normal, superior]
@@ -118,6 +168,7 @@ Crystal Sword:
 Phase Blade:
   - Qualities: [normal, superior]
     Sockets: [5]
+  - Qualities: unique # Lightsabre
 Greater Talons:
   - Qualities: [normal,superior]
     Sockets: [3]
@@ -133,77 +184,88 @@ Matriarchal Javelin:
 
 ### Misc
 Amulet:
-  - Qualities: 
-    - magic
+  - Qualities:
     - rare
     - unique
     - set
 Jewel:
-  - Qualities: 
-    - magic
+  - Qualities:
     - rare
-    - unique
+    - unique          # Rainbow Facet
 Small Charm:
-  - Qualities: [magic, unique]
-Large Charm:
-  - Qualities: unique
 Grand Charm:
-  - Qualities: [magic, unique]
 Key of Terror:
 Key of Hate:
 Key of Destruction:
+Twisted Essence of Suffering:
+Charged Essence of Hatred:
+Burning Essence of Terror:
+Festering Essence of Destruction:
 
 ### Exceptional Boots
 Demonhide Boots:
   - Qualities: rare
+  - Qualities: set    # Rite of Passage
+  - Qualities: unique # Infernostride
 Sharkskin Boots:
   - Qualities: rare
+  - Qualities: unique # Waterwalk
 Mesh Boots:
   - Qualities: rare
+  - Qualities: set    # Natalya's Soul
+  - Qualities: unique # Silkweave
 Battle Boots:
   - Qualities: rare
-# War Traveler
-  - Qualities: unique
+  - Qualities: set    # Aldur's Advance
+  - Qualities: unique # War Traveler
 War Boots:
   - Qualities: rare
+  - Qualities: set    # Immortal King's Pillar
+  - Qualities: unique # Gore Rider
 
 ### Elite Boots
 Wyrmhide Boots:
   - Qualities: rare
 Scarabshell Boots:
   - Qualities: rare
-# Sandstorm Trek
-  - Qualities: unique
+  - Qualities: unique # Sandstorm Trek
 Boneweave Boots:
   - Qualities: rare
+  - Qualities: unique # Marrowwalk
 Mirrored Boots:
   - Qualities: rare
 Myrmidon Greaves:
   - Qualities: rare
+  - Qualities: unique # Shadow Dancer
 
 ### Exceptional Gloves
 Demonhide Gloves:
   - Qualities: rare
 Sharkskin Gloves:
   - Qualities: rare
+  - Qualities: set    # Magnus' Skin
 Heavy Bracers:
   - Qualities: rare
-# Trang-Oul's Claws
-  - Qualities: set
+  - Qualities: set    # Trang-Oul's Claws
+  - Qualities: unique # Ghoulhide
 Battle Gauntlets:
   - Qualities: rare
+  - Qualities: set    # M'avina's Icy Clutch
+  - Qualities: unique # Lava Gout
 War Gauntlets:
   - Qualities: rare
-
+  - Qualities: set    # Immortal King's Force
+ 
 ### Elite Gloves
 Bramble Mitts:
   - Qualities: rare
+  - Qualities: set    # Laying of Hands
 Vampirebone Gloves:
   - Qualities: rare
-# Dracul's Grasp
-  - Qualities: unique
+  - Qualities: unique # Dracul's Grasp
 Vambraces:
   - Qualities: rare
+  - Qualities: unique # Soul Drainer
 Crusader Gauntlets:
   - Qualities: rare
 Ogre Gauntlets:
@@ -211,18 +273,19 @@ Ogre Gauntlets:
 
 ### Helmets
 Bone Visage:
-  - Qualities: [normal, superior]
-    Sockets: [0, 3]
+  - *nonmagic-helm
+  - Qualities: set    # Trang-Oul's Guise
 Demonhead:
-  - Qualities: [normal, superior]
-    Sockets: [0, 3]
+  - *nonmagic-helm
   - Qualities: unique # Andariel's Visage
 Winged Helm:
-  - Qualities: set # Guillaume's Face
+  - Qualities: set    # Guillaume's Face
+  - Qualities: unique # Valkyrie Wing
 
 ### Circlets
 Circlet:
   - Qualities: [magic, rare]
+  - Qualities: set    # Naj's Circlet
 Tiara:
   - Qualities: [magic, rare]
   - Qualities: unique # Kira's Guardian
@@ -230,33 +293,54 @@ Coronet:
   - Qualities: [magic, rare]
 Diadem:
   - Qualities: [magic, rare]
+  - Qualities: set    # M'avina's True Sight
   - Qualities: unique # Griffon's Eye
 
 ### Druid Pelts
 Blood Spirit:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
+  - Qualities: unique # Cerebus' Bite
 Sun Spirit:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
 Earth Spirit:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
+  - Qualities: unique # Spiritkeeper
 Sky Spirit:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
+  - Qualities: unique # Ravenlore
 Dream Spirit:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
 
 ### Barbarian Helms
 Carnage Helm:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
 Fury Visor:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
+  - Qualities: unique # Wolfhowl
 Destroyer Helm:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
-Conquieror Crown:
+  - Qualities: unique # Demonhorn's Edge
+Conqueror Crown:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
+  - Qualities: unique # Halaberd's Reign
 Guardian Crown:
+  - *nonmagic-helm
   - Qualities: [magic, rare]
 
 ### Paladin Shields
+Targe:
+  - *pally-shield-base
+Rondache:
+  - *pally-shield-base
 Akaran Targe:
   - *pally-shield-base
 Akaran Rondache:
@@ -265,12 +349,30 @@ Sacred Targe:
   - *pally-shield-base
 Sacred Rondache:
   - *pally-shield-base
+  - Qualities: unique # Alma Negra
+Crown Shield:
+  - *pally-shield-base
 Royal Shield:
   - *pally-shield-base
 Vortex Shield:
   - *pally-shield-base
+  - Qualities: set    # Griswold's Honor
 
 ### Runes
+El Rune:
+Eld Rune:
+Tir Rune:
+Nef Rune:
+Eth Rune:
+Ith Rune:
+Tal Rune:
+Ral Rune:
+Ort Rune:
+Thul Rune:
+Amn Rune:
+Sol Rune:
+Shael Rune:
+Dol Rune:
 Hel Rune:
 Pul Rune:
 Um Rune:
@@ -287,6 +389,27 @@ Cham Rune:
 Zod Rune:
 
 ### Gems
+Chipped Ruby:
+Chipped Emerald:
+Chipped Sapphire:
+Chipped Amethyst:
+Chipped Diamond:
+Chipped Topaz:
+Chipped Skull:
+Flawed Ruby:
+Flawed Emerald:
+Flawed Sapphire:
+Flawed Amethyst:
+Flawed Diamond:
+Flawed Topaz:
+Flawed Skull:
+Ruby:
+Emerald:
+Sapphire:
+Amethyst:
+Diamond:
+Topaz:
+Skull:
 Flawless Ruby:
 Flawless Sapphire:
 Flawless Emerald:
@@ -302,112 +425,610 @@ Perfect Diamond:
 Perfect Topaz:
 Perfect Skull:
 
+## My Additions
+Hydraskull:
+  - *nonmagic-helm
+Armet:
+  - *nonmagic-helm
+Giant Conch:
+  - *nonmagic-helm
+Mask:
+  - *nonmagic-helm
+  - Qualities: set    # Cathan's Visage
+Bone Helm:
+  - *nonmagic-helm
+Battle Belt:
+  - Qualities: set    # Wilhelm's Pride
+  - Qualities: unique # Snowclash
+Legend Spike:
+  - Qualities: unique # Ghostflame
+Balrog Spear:
+  - *magic-scepter-wand-staff-javelin
+  - Qualities: unique # Demon's Arch
+Ghost Glaive:
+  - *magic-scepter-wand-staff-javelin
+  - Qualities: unique # Wraith Flight
+Winged Harpoon:
+  - *magic-scepter-wand-staff-javelin
+  - Qualities: unique # Gargoyle's Bite
+Truncheon:
+  - Qualities: unique # Nord's Tenderizer
+Tyrant Club:
+  - Qualities: unique # Demon Limb
+Scourge:
+  - Qualities: unique # Stormlash (not Horizon's Tornado)
+Legendary Mallet:
+  - Qualities: unique # Schaefer's Hammer
+Mighty Scepter:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+  - Qualities: unique # Heaven's Light and The Redeemer
+Caduceus:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+  - Qualities: set    # Griswold's Redemption
+  - Qualities: unique # Astreon's Iron Ward
+Archon Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: unique # Mang Song's Lesson
+Ataghan:
+  - Qualities: unique # Djinn Slayer
+Elegant Blade:
+  - Qualities: unique # Bloodmoon
+Cryptic Sword:
+  - Qualities: set    # Sazabi's Cobalt Redeemer
+  - Qualities: unique # Frostwind
+Balrog Blade:
+  - Qualities: unique # Flamebellow
+Champion Sword:
+  - Qualities: unique # Doombringer
+Lich Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Boneshade
+Burnt Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Suicide Branch
+Petrified Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Carin Shard
+Tomb Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Arm of King Leoric
+Grave Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Blackhand Key
+Gladius:
+  - Qualities: unique # Bloodletter
+Cutlass:
+  - Qualities: unique # Coldsteel Eye
+Shamshir:
+  - Qualities: unique # Hexfire
+Tulwar:
+  - Qualities: unique # Blade of Ali Baba
+Ancient Sword:
+  - Qualities: unique # The Atlantean
+Espandon:
+  - Qualities: unique # Crainte Vomir
+Gothic Sword:
+  - Qualities: unique # Cloudcrack
+Zweihander:
+  - Qualities: unique # Todesfaelle Flamme
+Executioner Sword:
+  - Qualities: unique # Swordguard
+Jo Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: unique # Razorswitch
+Cedar Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: unique # Chromatic Ire
+Gothic Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+Rune Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: unique # Skull Collector
+Rune Scepter:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+Holy Water Sprinkler:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+Divine Scepter:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+  - Qualities: unique # Hand of Blessed Light
+Lochaber Axe:
+  - Qualities: unique # The Meat Scraper
+Battle Scythe:
+  - Qualities: unique # Athena's Wrath
+Partizan:
+  - Qualities: unique # Pierre Tombale Couant
+Grim Scythe:
+  - Qualities: unique # Grim's Burning Dead
+Battle Hammer:
+  - Qualities: unique # Earthshaker
+War Club:
+  - Qualities: unique # Bloodtree Stump
+Rondel:
+  - Qualities: unique # Heartcarver
+Cinquedeas:
+  - Qualities: unique # Blackbog's Sharp
+Stiletto:
+  - Qualities: unique # Stormspike
+Arbalest:
+  - Qualities: unique # Langer Briser
+Siege Crossbow:
+  - Qualities: unique # Pus Spitter
+Chu-Ko-Nu:
+  - Qualities: unique # Demon Machine
+Edge Bow:
+  - Qualities: unique # Skystrike
+Razor Bow:
+  - Qualities: unique # Riphook
+Cedar Bow:
+  - Qualities: unique # Kuko Shukaku
+Short Siege Bow:
+  - Qualities: unique # Witchwild String
+Large Siege Bow:
+  - Qualities: unique # Cliffkiller
+Hatchet:
+  - Qualities: unique # Coldkill
+Twin Axe:
+  - Qualities: unique # Islestrike
+Gothic Axe:
+  - Qualities: unique # Boneslayer Blade
+Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Torch of Iro
+Yew Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Maelstrom
+Bone Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: set    # Sander's Superstition
+  - Qualities: unique # Gravenspine
+Grim Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: set    # Infernal Touch
+  - Qualities: unique # Ume's Lament
+Short Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+Long Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+Gnarled Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: unique # Spire of Lazarus
+Battle Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: unique # The Salamander
+  - Qualities: set    # Cathan's Rule
+War Staff:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: unique # The Iron Jang Bong
+  - Qualities: set    # Arcanna's Deathwand
+Scepter:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+Grand Scepter:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+  - Qualities: set    # Civerb's Cudgel
+  - Qualities: unique # Rusthandle
+War Scepter:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+  - Qualities: set    # Milabrega's Rod
+Blade Barrier:
+  - Qualities: unique # Spike Thorn
+Aegis:
+  - Qualities: unique # Medusa's Gaze
+Ward:
+  - Qualities: set    # Taebaek's Glory
+  - Qualities: unique # Spirit Ward
+Defender:
+  - Qualities: unique # Visceratuant
+Round Shield:
+  - Qualities: set    # Whitstan's Guard
+  - Qualities: unique # Moser's Blessed Circle
+Barbed Shield:
+  - Qualities: unique # Lance Guard
+Pavise:
+  - Qualities: unique # Gerke's Sanctuary
+Grim Shield:
+  - Qualities: unique # Lidless Wall
+Bloodlord Skull:
+  - Qualities: [magic, rare]
+  - Qualities: unique # Darkforce Spawn
+Succubus Skull:
+  - Qualities: [magic, rare]
+  - Qualities: unique # Boneflame
+Ceremonial Bow:
+  - *zon-bow
+  - Qualities: unique # Lycander's Aim
+Matriarchal Bow:
+  - *zon-bow
+  - Qualities: unique # Blood Raven's Charge
+Walking Stick:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+Stalagmite:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+Shillelagh:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+Polished Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Ghost Wand:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Hyperion Javelin:
+  - *magic-scepter-wand-staff-javelin
+Stygian Pilum:
+  - *magic-scepter-wand-staff-javelin
+War Javelin:
+  - *magic-scepter-wand-staff-javelin
+Great Pilum:
+  - *magic-scepter-wand-staff-javelin
+Simbilan:
+  - *magic-scepter-wand-staff-javelin
+Spiculum:
+  - *magic-scepter-wand-staff-javelin
+Harpoon:
+  - *magic-scepter-wand-staff-javelin
+Javelin:
+  - *magic-scepter-wand-staff-javelin
+Pilum:
+  - *magic-scepter-wand-staff-javelin
+Short Spear:
+  - *magic-scepter-wand-staff-javelin
+Glaive:
+  - *magic-scepter-wand-staff-javelin
+Throwing Spear:
+  - *magic-scepter-wand-staff-javelin
+Seraph Rod:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-scepter
+Heavenly Stone:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Demon Heart:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Vortex Orb:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Glowing Orb:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Crystalline Globe:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Cloudy Sphere:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Sparkling Ball:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Eagle Orb:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Sacred Globe:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Smoked Sphere:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Clasped Orb:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Jared's Stone:
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+Grand Matron Bow:
+  - *zon-bow
+  - Qualities: set    # M'avina's Caster
+Ashwood Bow:
+  - *zon-bow
+Stag Bow:
+  - *zon-bow
+Reflex Bow:
+  - *zon-bow
+Maiden Javelin:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Minion Skull:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Hellspawn Skull:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Overseer Skull:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Mummified Trophy:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Fetish Trophy:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Sexton Trophy:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Cantor Trophy:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+  - Qualities: set    # Trang-Oul's Wing
+Preserved Head:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Zombie Head:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Unraveller Head:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Gargoyle Head:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Demon Head:
+  - Qualities: [inferior, normal, superior]
+  - Qualities: [magic, rare]
+Alpha Helm:
+  - *nonmagic-helm
+Griffon Headdress:
+  - *nonmagic-helm
+Hunter's Guise:
+  - *nonmagic-helm
+  - Qualities: set    # Aldur's Stony Gaze
+Sacred Feathers:
+  - *nonmagic-helm
+Wolf Head:
+  - *nonmagic-helm
+Hawk Helm:
+  - *nonmagic-helm
+Antlers:
+  - *nonmagic-helm
+Falcon Mask:
+  - *nonmagic-helm
+Spirit Mask:
+  - *nonmagic-helm
+Jawbone Visor:
+  - *nonmagic-helm
+Lion Helm:
+  - *nonmagic-helm
+Rage Mask:
+  - *nonmagic-helm
+Savage Helmet:
+  - *nonmagic-helm
+Jawbone Cap:
+  - *nonmagic-helm
+Fanged Helm:
+  - *nonmagic-helm
+Horned Helm:
+  - *nonmagic-helm
+Assault Helmet:
+  - *nonmagic-helm
+Avenger Guard:
+  - *nonmagic-helm
+  - Qualities: set    # Immortal King's Will
+Skull Cap:
+  - Qualities: set    # Arcanna's Head
+  - Qualities: unique # Tarnhelm
+Light Plate:
+  - Qualities: set    # Arcanna's Flesh
+Quilted Armor:
+  - Qualities: set    # Arctic Furs
+Light Belt:
+  - Qualities: set    # Arctic Binding
+Short War Bow:
+  - Qualities: set    # Arctic Horn
+Leather Gloves:
+  - Qualities: set    # Death's Hand
+War Sword:
+  - Qualities: set    # Death's Touch
+Sash:
+  - Qualities: set    # Death's Guard
+Buckler:
+  - Qualities: set    # Hsaru's Iron Fist
+Cap:
+  - Qualities: set    # Infernal Cranium or Sander's Paragon
+Crown:
+  - Qualities: set    # Iratha's Coil
+Kite Shield:
+  - Qualities: set    # Milabrega's Orb
+Boots:
+  - Qualities: set    # Tancred's Hobnails
+Jagged Star:
+  - Qualities: set    # Aldur's Rhythm
+Colossus Blade:
+  - Qualities: set    # Bul-Kathos' Sacred Charge
+Mythical Sword:
+  - Qualities: set    # Bul-Kathos' Tribal Guardian
+War Hat:
+  - Qualities: set    # Cow King's Horns
+  - Qualities: unique # Peasant Crown
+Studded Leather:
+  - Qualities: set    # Cow King's Hide
+Heavy Boots:
+  - Qualities: set    # Cow King's Hooves or Sander's Riprap
+Ornate Plate:
+  - Qualities: set    # Griswold's Heart
+  - Qualities: unique # Corpsemourn
+Reinforced Mace:
+  - Qualities: set    # Dangoon's Teaching
+Ogre Maul:
+  - Qualities: set    # Immortal King's Stone Crusher
+Scissors Suwayyah:
+  - Qualities: set    # Natalya's Mark
+Heavy Gloves:
+  - Qualities: set    # Sander's Taboo
+Basinet:
+  - Qualities: set    # Sazabi's Mental Sheath
+Chaos Armor:
+  - Qualities: set    # Trang-Oul's Scales
+  - Qualities: unique # Black Hades
+Ghost Armor:
+  - Qualities: unique # The Spirit Shroud
+Sharktooth Armor:
+  - Qualities: unique # Toothrow
+Templar Coat:
+  - Qualities: unique # Guardian Angel
+Embossed Plate:
+  - Qualities: unique # Atma's Wail
+Full Plate Mail:
+  - Qualities: unique # Goldskin
+Ancient Armor:
+  - Qualities: unique # Silks of the Victor
+Sallet:
+  - Qualities: unique # Rockstopper
+Bone Shield:
+  - Qualities: unique # Wall of the Eyeless
+Gothic Shield:
+  - Qualities: unique # The Ward
+Dirk:
+  - Qualities: unique # The Diggler
+Blade:
+  - Qualities: unique # Spectral Shard
+
 ### Uniques
-# Ribcracker
+Zakarum Shield:
+  - Qualities: unique # Dragonscale
 Quarterstaff:
-  - Qualities: unique
-# Skin of the Vipermagi
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: unique # Ribcracker
 Serpentskin Armor:
-  - Qualities: unique
-# Skullder's Ire
+  - Qualities: unique # Skin of the Vipermagi
 Russet Armor:
-  - Qualities: unique
-# Aldur's Advance
-  - Qualities: set
-# Jalal's Mane
+  - Qualities: set    # Aldur's Advance
+  - Qualities: unique # Skullder's Ire
 Totemic Mask:
-  - Qualities: unique
-# Oculus
+  - *nonmagic-helm
+  - Qualities: unique # Jalal's Mane
 Swirling Crystal:
-  - Qualities: unique
-# Tal Rasha's Lidless Eye
-  - Qualities: set
-# Homunculus
+  - Qualities: set    # Tal Rasha's Lidless Eye
+  - Qualities: unique # Oculus
 Hierophant Trophy:
-  - Qualities: unique
-# Herald of Zakarum
+  - Qualities: [magic, rare]
+  - Qualities: unique # Homunculus
 Gilded Shield:
-  - Qualities: unique
-# Vampire Gaze
+  - Qualities: unique # Herald of Zakarum
 Grim Helm:
-  - Qualities: unique
-# Titan's Revenge
+  - *nonmagic-helm
+  - Qualities: set    # Natalya's Totem
+  - Qualities: unique # Vampire Gaze
 Ceremonial Javelin:
-  - Qualities: unique
-# Shaftstop
+  - Qualities: [magic, rare]
+  - Qualities: unique # Titan's Revenge
 Mesh Armor:
-  - Qualities: unique
-# Arachnid Mesh
+  - Qualities: unique # Shaftstop
 Spiderweb Sash:
-  - Qualities: unique
-# Eschuta's Temper
+  - Qualities: unique # Arachnid Mesh
 Eldritch Orb:
-  - Qualities: unique
-# Arreat's Face
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Eschuta's Temper
 Slayer Guard:
-  - Qualities: unique
-# Death's Web
+  - *nonmagic-helm
+  - Qualities: unique # Arreat's Face
 Unearthed Wand:
-  - Qualities: unique
-# Chance Guards
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Death's Web
 Chain Gloves:
-  - Qualities: unique
-# Death's Fathom
+  - Qualities: unique # Chance Guards
 Dimensional Shard:
-  - Qualities: unique
-# Nightwing's Veil
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-wand
+  - Qualities: unique # Death's Fathom
 Spired Helm:
-  - Qualities: unique
-# Crown of Ages
+  - *nonmagic-helm
+  - Qualities: set    # Ondal's Almighty
+  - Qualities: unique # Veil of Steel or Nightwing's Veil
 Corona:
-  - Qualities: unique
-# Verdungo's Hearty Cord
+  - *nonmagic-helm
+  - Qualities: set    # Griswold's Valor
+  - Qualities: unique # Crown of Ages
 Mithril Coil:
-  - Qualities: unique
-# String of Ears
+  - Qualities: set    # Credendum
+  - Qualities: unique # Verdungo's Hearty Cord
 Demonhide Sash:
-  - Qualities: unique
-# Duriel's Shell
+  - Qualities: unique # String of Ears
 Cuirass:
-  - Qualities: unique
-# Razortail
+  - Qualities: set    # Haemosu's Adamant
+  - Qualities: unique # Duriel's Shell
 Sharkskin Belt:
-  - Qualities: unique
-# Goldwrap
+  - Qualities: set    # M'avina's Tenet
+  - Qualities: unique # Razortail
 Heavy Belt:
-  - Qualities: unique
-# Nosferatu's Coil
+  - Qualities: set    # Iratha's Cord
+  - Qualities: unique # Goldwrap
 Vampirefang Belt:
-  - Qualities: unique
-# Thundergod's Vigor
+  - Qualities: unique # Nosferatu's Coil
 War Belt:
-  - Qualities: unique
-# Ondal's Wisdom
+  - Qualities: set    # Immortal King's Detail
+  - Qualities: unique # Thundergod's Vigor
 Elder Staff:
-  - Qualities: unique
-# Goblin Toe
+  - *magic-scepter-wand-staff-javelin
+  - *nonmagic-staff
+  - Qualities: set    # Naj's Puzzler
+  - Qualities: unique # Ondal's Wisdom
 Light Plated Boots:
-  - Qualities: unique
-# Magefist
+  - Qualities: set    # Vidala's Fetlock
+  - Qualities: unique # Goblin Toe
 Light Gauntlets:
-  - Qualities: unique
-# Gull
+  - Qualities: set    # Arctic Mitts or Iratha's Cuff
+  - Qualities: unique # Magefist
 Dagger:
-  - Qualities: unique
-# Wizardspike
+  - Qualities: unique # Gull
 Bone Knife:
-  - Qualities: unique
-# Fleshripper
+  - Qualities: unique # Wizardspike
 Fanged Knife:
-  - Qualities: unique
-# Windforce
+  - Qualities: unique # Fleshripper
 Hydra Bow:
-  - Qualities: unique
+  - Qualities: unique # Windforce
+Ballista:
+  - Qualities: unique # Buriza-Do Kyanon
+Crusader Bow:
+  - Qualities: unique # Eaglehorn
+Ward Bow:
+  - Qualities: unique # Widowmaker
+Grand Crown:
+  - Qualities: set    # Hwanin's Splendor
+  - Qualities: unique # Crown of Thieves
+Bill:
+  - Qualities: set    # Hwanin's Justice
+Tigulated Mail:
+  - Qualities: set    # Hwanin's Refuge
+Belt:
+  - Qualities: set    # Hsaru's Iron Stay
+Troll Belt:
+  - Qualities: set    # Trang-Oul's Girth
 
 ### Sets
-# Tal Rasha's Horadric Crest
 Death Mask:
-  - Qualities: set
-# Tal Rasha's Fine Spun Cloth
+  - *nonmagic-helm
+  - Qualities: set    # Tal Rasha's Horadric Crest
 Mesh Belt:
-  - Qualities: set
+  - Qualities: set    # Tal Rasha's Fine Spun Cloth
+  - Qualities: unique # Gloom's Trap
