@@ -420,9 +420,14 @@ namespace MapAssist.Helpers
                             continue;
                         }
 
-                        if (Items.ItemColors.TryGetValue(item.ItemData.ItemQuality, out var color))
+                        if (item != null && Items.ItemColors.TryGetValue(item.ItemData.ItemQuality, out var color))
                         {
                             var itemBaseName = Items.ItemName(item.TxtFileNo);
+
+                            if (itemBaseName.EndsWith(" Rune") || itemBaseName.StartsWith("Key of "))
+                            {
+                                color = Items.ItemColors[ItemQuality.CRAFT];
+                            }
 
                             DrawText(gfx, MapAssistConfiguration.Loaded.MapConfiguration.Item, item.Position, itemBaseName,
                                 color: color);
@@ -434,6 +439,12 @@ namespace MapAssist.Helpers
 
         private void DrawPlayers(Graphics gfx)
         {
+            var areasToRender = new AreaData[] { _areaData };
+            if (AreaExtensions.RequiresStitching(_areaData.Area))
+            {
+                areasToRender = areasToRender.Concat(_areaData.AdjacentAreas.Values.Where(area => AreaExtensions.RequiresStitching(area.Area))).ToArray();
+            }
+
             Dictionary<uint, Types.UnitAny> corpseList;
             foreach(var player in _gameData.Players.Values)
             {
@@ -456,33 +467,34 @@ namespace MapAssist.Helpers
                 var canDrawIcon = MapAssistConfiguration.Loaded.MapConfiguration.Corpse.CanDrawIcon();
                 var canDrawLine = MapAssistConfiguration.Loaded.MapConfiguration.Corpse.CanDrawLine();
                 var corpses = corpseList.Values.ToArray();
+
                 foreach (var corpse in corpses)
                 {
-                    var corpseArea = corpse.InitialArea;
-                    var inCurrentOrAdjacentArea = corpseArea == _gameData.Area || _areaData.AdjacentLevels.Keys.Contains(corpseArea);
-                    if (inCurrentOrAdjacentArea)
+                    if (!areasToRender.Any(area => area.Area == corpse.InitialArea)) continue; // Don't show corpse if not in drawn areas
+
+                    if (canDrawIcon)
                     {
-                        if (canDrawIcon)
+                        DrawIcon(gfx, MapAssistConfiguration.Loaded.MapConfiguration.Corpse, corpse.Position);
+                    }
+
+                    if (canDrawLabel)
+                    {
+                        var poiPosition = MovePointInBounds(corpse.Position, _gameData.PlayerPosition);
+                        DrawText(gfx, MapAssistConfiguration.Loaded.MapConfiguration.Corpse, poiPosition, corpse.Name + " (" + "Corpse" + ")"); //fix label when language is merged in
+                    }
+
+                    if (canDrawLine && corpse.Name == _gameData.PlayerUnit.Name)
+                    {
+                        var padding = canDrawLabel ? MapAssistConfiguration.Loaded.MapConfiguration.Corpse.LabelFontSize * 1.3f / 2 : 0; // 1.3f is the line height adjustment
+                        var poiPosition = MovePointInBounds(corpse.Position, _gameData.PlayerPosition, padding);
+                        DrawLine(gfx, MapAssistConfiguration.Loaded.MapConfiguration.Corpse, _gameData.PlayerPosition, poiPosition);
+                    }
+
+                    if (_gameData.PlayerUnit.DistanceTo(corpse.Position) <= 40)
+                    {
+                        if (!_gameData.Players.TryGetValue(corpse.UnitId, out var player))
                         {
-                            DrawIcon(gfx, MapAssistConfiguration.Loaded.MapConfiguration.Corpse, corpse.Position);
-                        }
-                        if (canDrawLabel)
-                        {
-                            var poiPosition = MovePointInBounds(corpse.Position, _gameData.PlayerPosition);
-                            DrawText(gfx, MapAssistConfiguration.Loaded.MapConfiguration.Corpse, poiPosition, corpse.Name + " (" + "Corpse" + ")"); //fix label when language is merged in
-                        }
-                        if (canDrawLine && corpse.Name == _gameData.PlayerUnit.Name)
-                        {
-                            var padding = canDrawLabel ? MapAssistConfiguration.Loaded.MapConfiguration.Corpse.LabelFontSize * 1.3f / 2 : 0; // 1.3f is the line height adjustment
-                            var poiPosition = MovePointInBounds(corpse.Position, _gameData.PlayerPosition, padding);
-                            DrawLine(gfx, MapAssistConfiguration.Loaded.MapConfiguration.Corpse, _gameData.PlayerPosition, poiPosition);
-                        }
-                        if (_gameData.PlayerUnit.DistanceTo(corpse.Position) <= 40)
-                        {
-                            if (!_gameData.Players.TryGetValue(corpse.UnitId, out var player))
-                            {
-                                GameMemory.Corpses[_gameData.ProcessId].Remove(corpse.UnitId);
-                            }
+                            GameMemory.Corpses[_gameData.ProcessId].Remove(corpse.UnitId);
                         }
                     }
                 }
@@ -495,20 +507,17 @@ namespace MapAssist.Helpers
                 var canDrawNonPartyIcon = MapAssistConfiguration.Loaded.MapConfiguration.NonPartyPlayer.CanDrawIcon();
                 var canDrawNonPartyLabel = MapAssistConfiguration.Loaded.MapConfiguration.NonPartyPlayer.CanDrawLabel();
                 var canDrawHostileLine = MapAssistConfiguration.Loaded.MapConfiguration.HostilePlayer.CanDrawLine();
-
-                var areasToRender = (new AreaData[] { _areaData }).Concat(_areaData.AdjacentAreas.Values).ToArray();
-
+                
                 foreach (var player in _gameData.Roster.List)
                 {
                     var myPlayer = player.UnitId == myPlayerEntry.UnitId;
                     var inMyParty = player.PartyID == myPlayerEntry.PartyID;
                     var playerName = player.Name;
 
-                    var foundInArea = areasToRender.FirstOrDefault(area => area.IncludesPoint(player.Position));
-                    if (foundInArea != null && foundInArea.Area != _areaData.Area && !AreaExtensions.RequiresStitching(foundInArea.Area)) continue; // Don't show gamedata objects in another area if areas aren't stitched together
-
                     if (_gameData.Players.TryGetValue(player.UnitId, out var playerUnit))
                     {
+                        if (!myPlayer && !areasToRender.Any(area => area.IncludesPoint(playerUnit.Position))) continue; // Don't show player if not in drawn areas
+
                         // use data from the unit table if available
                         if (playerUnit.InPlayerParty) // partyid is max if player is not in a party
                         {
@@ -564,8 +573,7 @@ namespace MapAssist.Helpers
                     }
                     else
                     {
-                        var inCurrentOrAdjacentArea = player.Area == _gameData.Area || _areaData.AdjacentLevels.Keys.Contains(player.Area);
-                        if (!inCurrentOrAdjacentArea) continue;
+                        if (!myPlayer && !areasToRender.Any(area => area.IncludesPoint(player.Position))) continue; // Don't show player if not in drawn areas
 
                         // otherwise use the data from the roster
                         // only draw if in the same party, otherwise position/area data will not be up to date
@@ -763,7 +771,7 @@ namespace MapAssist.Helpers
                 var item = ItemLog[i];
 
                 Color fontColor;
-                if (!Items.ItemColors.TryGetValue(item.ItemData.ItemQuality, out fontColor))
+                if (item == null || !Items.ItemColors.TryGetValue(item.ItemData.ItemQuality, out fontColor))
                 {
                     continue;
                 }
@@ -784,7 +792,7 @@ namespace MapAssist.Helpers
                     }
                 }
 
-                if (ItemLog[i].Stats.TryGetValue(Stat.STAT_ITEM_NUMSOCKETS, out var numSockets))
+                if (item.Stats.TryGetValue(Stat.STAT_ITEM_NUMSOCKETS, out var numSockets))
                 {
                     itemLabelExtra += "[" + numSockets + " S] ";
                     if (fontColor == Color.White)
@@ -793,9 +801,14 @@ namespace MapAssist.Helpers
                     }
                 }
 
+                if (itemBaseName.EndsWith(" Rune") || itemBaseName.StartsWith("Key of "))
+                {
+                    fontColor = Items.ItemColors[ItemQuality.CRAFT];
+                }
+
                 var brush = CreateSolidBrush(gfx, fontColor, 1);
 
-                switch (ItemLog[i].ItemData.ItemQuality)
+                switch (item.ItemData.ItemQuality)
                 {
                     case ItemQuality.UNIQUE:
                         itemSpecialName = Items.UniqueName(item.TxtFileNo) + " ";
@@ -1092,10 +1105,10 @@ namespace MapAssist.Helpers
         {
             var halfSize = size.Multiply(1 / 2f);
 
-            if (point.X - halfSize.X < _drawBounds.Left) point.X += _drawBounds.Left - point.X + halfSize.X;
-            if (point.X + halfSize.X > _drawBounds.Right) point.X += _drawBounds.Right - point.X - halfSize.X;
-            if (point.Y - halfSize.Y < _drawBounds.Top) point.Y += _drawBounds.Top - point.Y + halfSize.Y;
-            if (point.Y + halfSize.Y > _drawBounds.Bottom) point.Y += _drawBounds.Bottom - point.Y - halfSize.Y;
+            if (point.X - halfSize.X < _drawBounds.Left) point.X += _drawBounds.Left - point.X + halfSize.X + 1; // Single extra pixel to prevent GameOverlay from word wrapping
+            if (point.X + halfSize.X > _drawBounds.Right) point.X += _drawBounds.Right - point.X - halfSize.X - 1; // Single extra pixel to prevent GameOverlay from word wrapping
+            if (point.Y - halfSize.Y < _drawBounds.Top) point.Y += _drawBounds.Top - point.Y + halfSize.Y + 1; // Single extra pixel to prevent GameOverlay from word wrapping
+            if (point.Y + halfSize.Y > _drawBounds.Bottom) point.Y += _drawBounds.Bottom - point.Y - halfSize.Y - 1; // Single extra pixel to prevent GameOverlay from word wrapping
 
             return point;
         }
