@@ -1,6 +1,14 @@
+# This fork
+
+
+This fork of the MapAssist tool is maintained independently from the OneXDeveloper repo for the purposes of providing a more comprehensive Item Filter configuration.
+
+This fork aims to log more items of all base item types than the default configuration, without being overly spammy.
+
+You can access the custom configuration [here](https://github.com/smellslikeawesome/MapAssist/blob/custom_configuration/ItemFilter.yaml)
+
 # MapAssist
 
-![MapAssist](https://user-images.githubusercontent.com/1294559/147396525-b44982b9-fbd9-4a48-bfbf-73ef2178e60b.png)
 
 THE 'MapAssist' TOOL AND CONTENTS THEREIN WERE INTENDED FOR INFORMATIONAL AND LEARNING PURPOSES ONLY.
 
